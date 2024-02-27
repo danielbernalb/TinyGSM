@@ -198,6 +198,24 @@ class TinyGsmSim7080 : public TinyGsmSim70xx<TinyGsmSim7080>,
     waitResponse();
     return res;
   }
+  
+  
+  bool setNetworkActiveImpl(){
+    sendAT(GF("+CNACT=0,1"));
+    if (waitResponse(60000L, GF(GSM_NL "+APP PDP: 0,ACTIVE"),
+          GF(GSM_NL "+APP PDP: 0,DEACTIVE")) != 1) { return false; }
+    return true;
+  }
+
+  String getNetworkActiveImpl(){
+    sendAT(GF("+CNACT?"));
+    String res;
+    if (waitResponse(GF(GSM_NL "+CNACT: 0")) != 1) { return ""; }
+    streamSkipUntil('\"');
+    res = stream.readStringUntil('\"');
+    waitResponse();
+    return res;
+  }
 
   /*
    * Secure socket layer functions
@@ -612,6 +630,7 @@ class TinyGsmSim7080 : public TinyGsmSim70xx<TinyGsmSim7080>,
       while (stream.available() > 0) {
         TINY_GSM_YIELD();
         int8_t a = stream.read();
+        // putchar(a);
         if (a <= 0) continue;  // Skip 0x00 bytes, just in case
         data += static_cast<char>(a);
         if (r1 && data.endsWith(r1)) {

@@ -434,7 +434,7 @@ class TinyGsmUBLOX : public TinyGsmModem<TinyGsmUBLOX>,
    * I2C port, the GSM-based "Cell Locate" location will be returned instead.
    */
  protected:
-  bool enableGPSImpl() {
+  bool enableGPSImpl(int8_t power_en_pin ,uint8_t enable_level) {
     // AT+UGPS=<mode>[,<aid_mode>[,<GNSS_systems>]]
     // <mode> - 0: GNSS receiver powered off, 1: on
     // <aid_mode> - 0: no aiding (default)
@@ -443,7 +443,7 @@ class TinyGsmUBLOX : public TinyGsmModem<TinyGsmUBLOX>,
     if (waitResponse(10000L, GF(GSM_NL "+UGPS:")) != 1) { return false; }
     return waitResponse(10000L) == 1;
   }
-  bool disableGPSImpl() {
+  bool disableGPSImpl(int8_t power_en_pin ,uint8_t disbale_level) {
     sendAT(GF("+UGPS=0"));
     if (waitResponse(10000L, GF(GSM_NL "+UGPS:")) != 1) { return false; }
     return waitResponse(10000L) == 1;
@@ -574,7 +574,7 @@ class TinyGsmUBLOX : public TinyGsmModem<TinyGsmUBLOX>,
     return getUbloxLocation(2, lat, lon, 0, 0, 0, 0, accuracy, year, month, day,
                             hour, minute, second);
   }
-  bool getGPSImpl(float* lat, float* lon, float* speed = 0, float* alt = 0,
+  bool getGPSImpl(uint8_t *status,float* lat, float* lon, float* speed = 0, float* alt = 0,
                   int* vsat = 0, int* usat = 0, float* accuracy = 0,
                   int* year = 0, int* month = 0, int* day = 0, int* hour = 0,
                   int* minute = 0, int* second = 0) {

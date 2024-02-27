@@ -239,6 +239,24 @@ class TinyGsmSim70xx : public TinyGsmModem<TinyGsmSim70xx<modemType>>,
     return thisModem().getLocalIPImpl();
   }
 
+  bool setNetworkActive(){
+    return thisModem().setNetworkActiveImpl();
+  }
+
+  String getNetworkActive(){
+    return thisModem().getNetworkActiveImpl();
+  }
+
+  String getNetworkAPN(){
+    thisModem().sendAT("+CGNAPN");
+    if (waitResponse(GF(GSM_NL "+CGNAPN:")) != 1) { return ""; }
+    thisModem().streamSkipUntil('\"');
+    String res = thisModem().stream.readStringUntil('\"');
+    waitResponse();
+    return res;
+  }
+
+
   /*
    * GPRS functions
    */
@@ -278,16 +296,22 @@ class TinyGsmSim70xx : public TinyGsmModem<TinyGsmSim70xx<modemType>>,
    */
  protected:
   // enable GPS
-  bool enableGPSImpl() {
+  bool enableGPSImpl(int8_t power_en_pin ,uint8_t enable_level) {
     thisModem().sendAT(GF("+CGNSPWR=1"));
     if (thisModem().waitResponse() != 1) { return false; }
     return true;
   }
 
-  bool disableGPSImpl() {
+  bool disableGPSImpl(int8_t power_en_pin ,uint8_t disbale_level) {
     thisModem().sendAT(GF("+CGNSPWR=0"));
     if (thisModem().waitResponse() != 1) { return false; }
     return true;
+  }
+
+  bool isEnableGPSImpl(){
+    thisModem().sendAT(GF("+CGNSPWR?"));
+    if (thisModem().waitResponse(GF(GSM_NL "+CGNSPWR:")) != 1) { return false; }
+    return 1 == thisModem().streamGetIntBefore('\r'); 
   }
 
   // get the RAW GPS output
@@ -303,7 +327,7 @@ class TinyGsmSim70xx : public TinyGsmModem<TinyGsmSim70xx<modemType>>,
   }
 
   // get GPS informations
-  bool getGPSImpl(float* lat, float* lon, float* speed = 0, float* alt = 0,
+  bool getGPSImpl(uint8_t *status,float* lat, float* lon, float* speed = 0, float* alt = 0,
                   int* vsat = 0, int* usat = 0, float* accuracy = 0,
                   int* year = 0, int* month = 0, int* day = 0, int* hour = 0,
                   int* minute = 0, int* second = 0) {
@@ -311,7 +335,7 @@ class TinyGsmSim70xx : public TinyGsmModem<TinyGsmSim70xx<modemType>>,
     if (thisModem().waitResponse(10000L, GF(GSM_NL "+CGNSINF:")) != 1) {
       return false;
     }
-
+    *status = thisModem().streamGetIntLength(1);
     thisModem().streamSkipUntil(',');                // GNSS run status
     if (thisModem().streamGetIntBefore(',') == 1) {  // fix status
       // init variables

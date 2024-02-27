@@ -652,6 +652,7 @@ class TinyGsmSim800 : public TinyGsmModem<TinyGsmSim800>,
       while (stream.available() > 0) {
         TINY_GSM_YIELD();
         int8_t a = stream.read();
+        // putchar(a);
         if (a <= 0) continue;  // Skip 0x00 bytes, just in case
         data += static_cast<char>(a);
         if (r1 && data.endsWith(r1)) {

@@ -158,6 +158,22 @@ class TinyGsmSim7000 : public TinyGsmSim70xx<TinyGsmSim7000>,
     return res;
   }
 
+  bool setNetworkActiveImpl(){
+    sendAT(GF("+CNACT=1"));
+    if (waitResponse(10000L) != 1) { return false; }
+    return true;
+  }
+
+  String getNetworkActiveImpl(){
+    sendAT(GF("+CNACT?"));
+    String res;
+    if (waitResponse(GF(GSM_NL "+CNACT: 1")) != 1) { return ""; }
+    streamSkipUntil('\"');
+    res = stream.readStringUntil('\"');
+    waitResponse();
+    return res;
+  }
+
   /*
    * GPRS functions
    */
@@ -415,6 +431,7 @@ class TinyGsmSim7000 : public TinyGsmSim70xx<TinyGsmSim7000>,
       while (stream.available() > 0) {
         TINY_GSM_YIELD();
         int8_t a = stream.read();
+        // putchar(a);
         if (a <= 0) continue;  // Skip 0x00 bytes, just in case
         data += static_cast<char>(a);
         if (r1 && data.endsWith(r1)) {
