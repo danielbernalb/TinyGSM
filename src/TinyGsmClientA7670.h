@@ -554,9 +554,9 @@ class TinyGsmA7670 : public TinyGsmModem<TinyGsmA7670>,
     if (fixMode == 1 || fixMode == 2 || fixMode == 3) {
       // init variables
       float ilat = 0;
-      char  north;
+      //char  north;
       float ilon = 0;
-      char  east;
+      //char  east;
       float ispeed       = 0;
       float ialt         = 0;
       int   ivsat        = 0;
